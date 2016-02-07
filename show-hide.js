@@ -1,10 +1,18 @@
+/*
+ @preserve
+ * jQuery Show/Hide v1.0 - Show or Hide elements on the page
+ * https://github.com/jquery/jquery-simulate
+ *
+ * Copyright 2016 Ashley Needham
+ * Released under the MIT license.
+ * http://jquery.org/license
+ *
+ * Date: Sun February 7th 2016
+ *
+ * Show or Hide elements when clicking or changing the elements passed in the selector.
+ */
+
 (function($) {
-    /**
-     * Show/Hide plugin will show specified elements when triggered by the selector elements
-     *
-     * @param options
-     * @returns {*}
-     */
 
     $.fn.showHide = function(options) {
         var settings = $.extend({
@@ -26,6 +34,7 @@
                 elTag = el.prop('tagName'),
                 elType = el.prop('type'),
                 reply = false;
+
 
             console.log('Tag: ' + elTag + ' | Type: ' + elType);
             if (elTag === 'INPUT' && elType !== 'button' && elType !== 'reset' && elType !== 'submit') {
@@ -82,25 +91,13 @@
                 // Check for show & hide selector strings
                 if (show === '') {
                     // No show elements so we toggle the hide elements
-                    $(hide).slideToggle(settings.transitionSpeed, function() {
-                        if (settings.toggleText) {
-                            toggleText(el);
-                        }
-                    });
+                    $(hide).slideToggle(settings.transitionSpeed);
                 } else if (hide === '') {
                     // No hide elements so we toggle the show elements
-                    $(show).slideToggle(settings.transitionSpeed, function() {
-                        if (settings.toggleText) {
-                            toggleText(el);
-                        }
-                    });
+                    $(show).slideToggle(settings.transitionSpeed);
                 } else {
                     // Both show and hide elements exist so we toggle each
-                    $(show + ',' + hide).slideToggle(settings.transitionSpeed, function() {
-                        if (settings.toggleText) {
-                            toggleText(el);
-                        }
-                    });
+                    $(show + ',' + hide).slideToggle(settings.transitionSpeed);
                 }
             } else {
                 console.log('showHide.standard');
