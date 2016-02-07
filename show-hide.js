@@ -73,7 +73,6 @@
          * @param el    The element to work with
          * @param show  A jquery object of elements to show
          * @param hide  A jquery object of elements to hide
-         * @param runFirst  Which to command to run first (show or hide)
          */
         function run(el, show, hide) {
             console.log('showHide.Run started');
