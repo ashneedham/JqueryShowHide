@@ -1,13 +1,19 @@
 (function($) {
+    /**
+     * Show/Hide plugin will show specified elements when triggered by the selector elements
+     *
+     * @param options
+     * @returns {*}
+     */
 
     $.fn.showHide = function(options) {
         var settings = $.extend({
             transitionSpeed: 300,
-            toggleText: false,
             toggleElements: false,
             displayShowElementsOnLoad: false,
             displayHideElementsOnLoad: true,
             preventDefaultEvent: true,
+            runWhichEventFirst: '',
             callbackOnLoad: function(){ return true; },
             callbackOnTrigger: function(){ return true; }
         }, options),
@@ -17,7 +23,6 @@
             var el = $(this),
                 hide = el.data('hide'),
                 show = el.data('show'),
-                runFirst = el.data('run-first'),
                 elTag = el.prop('tagName'),
                 elType = el.prop('type'),
                 reply = false;
@@ -29,8 +34,9 @@
                 el.on('change', function(e) {
                     console.log('Element changed');
                     reply = settings.callbackOnTrigger(el, show, hide, elTag, elType);
+                    console.log('REPLY = ' + reply);
                     if (reply) {
-                        run($(this), show, hide, runFirst);
+                        run($(this), show, hide);
                     }
                 });
             } else {
@@ -42,7 +48,7 @@
                     console.log('Element clicked');
                     reply = settings.callbackOnTrigger(el, show, hide, elTag, elType);
                     if (reply) {
-                        run($(this), show, hide, runFirst);
+                        run($(this), show, hide);
                     }
                 });
             }
@@ -69,63 +75,52 @@
          * @param hide  A jquery object of elements to hide
          * @param runFirst  Which to command to run first (show or hide)
          */
-        function run(el, show, hide, runFirst) {
+        function run(el, show, hide) {
             console.log('showHide.Run started');
-            if (show == hide) {
+            if (settings.toggleElements) {
                 console.log('showHide.toggle');
-                // If show and hide elements are the same then toggle
-                $(show).slideToggle(settings.transitionSpeed, function() {
-                    if (settings.toggleText) {
-                        toggleText(el);
-                    }
-                });
-            } else {
-                if (runFirst === 'show') {
-                    $(show).slideDown(settings.transitionSpeed, function() {
-                        $(hide).slideUp(settings.transitionSpeed);
+
+                // Check for show & hide selector strings
+                if (show === '') {
+                    // No show elements so we toggle the hide elements
+                    $(hide).slideToggle(settings.transitionSpeed, function() {
                         if (settings.toggleText) {
-                            $.fn.showHide.toggleText(el);
+                            toggleText(el);
                         }
                     });
-                } else if (runFirst === 'hide') {
-                    $(hide).slideUp(settings.transitionSpeed, function() {
-                        $(show).slideDown(settings.transitionSpeed);
+                } else if (hide === '') {
+                    // No hide elements so we toggle the show elements
+                    $(show).slideToggle(settings.transitionSpeed, function() {
                         if (settings.toggleText) {
-                            $.fn.showHide.toggleText(el);
+                            toggleText(el);
                         }
                     });
                 } else {
-                    console.log('showHide.showHideSimultaneous');
+                    // Both show and hide elements exist so we toggle each
+                    $(show + ',' + hide).slideToggle(settings.transitionSpeed, function() {
+                        if (settings.toggleText) {
+                            toggleText(el);
+                        }
+                    });
+                }
+            } else {
+                console.log('showHide.standard');
+                if (settings.runFirst === 'show') {
+                    console.log('showHide.standard.showFirst');
+                    $(show).slideDown(settings.transitionSpeed, function() {
+                        $(hide).slideUp(settings.transitionSpeed);
+                    });
+                } else if (settings.runFirst === 'hide') {
+                    console.log('showHide.standard.hideFirst');
+                    $(hide).slideUp(settings.transitionSpeed, function() {
+                        $(show).slideDown(settings.transitionSpeed);
+                    });
+                } else {
+                    console.log('showHide.standard.showHideSimultaneous');
                     $(show).slideDown(settings.transitionSpeed);
                     $(hide).slideUp(settings.transitionSpeed);
-                    if (settings.toggleText) {
-                        $.fn.showHide.toggleText(el);
-                    }
                 }
             }
-        }
-
-        /**
-         * Toggle element text
-         *
-         * @param el The element to process
-         */
-        function toggleText(el) {
-            var altText = el.data('alt-text'),
-                currentText = '',
-                valAttr = el.val();
-
-            // Determine if we have a value
-            if (typeof valAttr !== typeof undefined && valAttr !== false) {
-                currentText = el.val();
-                el.val(altText);
-            } else {
-                currentText = el.html();
-                el.html(altText);
-            }
-
-            // Swap the alt text
-            el.data('alt-text', currentText);
         }
     };
 
