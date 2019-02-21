@@ -1,7 +1,7 @@
 /*
  @preserve
  * jQuery Show/Hide v1.0 - Show or Hide elements on the page
- * https://github.com/jquery/jquery-simulate
+ * https://github.com/jquery/jquery-show-hide
  *
  * Copyright 2016 Ashley Needham
  * Released under the MIT license.
@@ -16,16 +16,16 @@
 
     $.fn.showHide = function(options) {
         var settings = $.extend({
-            transitionSpeed: 300,
-            toggleElements: false,
-            displayShowElementsOnLoad: false,
-            displayHideElementsOnLoad: true,
-            preventDefaultEvent: true,
-            runWhichEventFirst: '',
-            callbackOnLoad: function(){ return true; },
-            callbackOnTrigger: function(){ return true; }
-        }, options),
-            obj = this.filter('a, input, textarea, select, option');
+                transitionSpeed: 300,
+                toggleElements: false,
+                displayShowElementsOnLoad: false,
+                displayHideElementsOnLoad: true,
+                preventDefaultEvent: true,
+                runWhichEventFirst: '',
+                callbackOnLoad: function(){ return true; },
+                callbackOnTrigger: function(){ return true; }
+            }, options),
+            obj = this.filter('a, input, textarea, select');
 
         return obj.each(function() {
             var el = $(this),
@@ -45,7 +45,27 @@
                     reply = settings.callbackOnTrigger(el, show, hide, elTag, elType);
                     console.log('REPLY = ' + reply);
                     if (reply) {
-                        run($(this), show, hide);
+                        run(show, hide);
+                    }
+                });
+            } else if (elTag === 'SELECT') {
+                /**
+                 * For select lists we need to switch the el with the selected option
+                 */
+                var el = ($(this).children(':selected').length > 0 ? $(this).children(':selected') : $(this).children().first()),
+                    hide = el.data('hide'),
+                    show = el.data('show');
+
+                $(this).on('change', function(e) {
+                    console.log('Element changed');
+                    var el = ($(this).children(':selected').length > 0 ? $(this).children(':selected') : $(this).children().first());
+                        hide = el.data('hide'),
+                        show = el.data('show');
+
+                    reply = settings.callbackOnTrigger(el, show, hide, elTag, elType);
+                    console.log('REPLY = ' + reply);
+                    if (reply) {
+                        run(show, hide);
                     }
                 });
             } else {
@@ -57,7 +77,7 @@
                     console.log('Element clicked');
                     reply = settings.callbackOnTrigger(el, show, hide, elTag, elType);
                     if (reply) {
-                        run($(this), show, hide);
+                        run(show, hide);
                     }
                 });
             }
@@ -79,11 +99,10 @@
         /**
          * Execute show/hide
          *
-         * @param el    The element to work with
          * @param show  A jquery object of elements to show
          * @param hide  A jquery object of elements to hide
          */
-        function run(el, show, hide) {
+        function run(show, hide) {
             console.log('showHide.Run started');
             if (settings.toggleElements) {
                 console.log('showHide.toggle');
@@ -101,23 +120,46 @@
                 }
             } else {
                 console.log('showHide.standard');
-                if (settings.runFirst === 'show') {
+                if (settings.runWhichEventFirst === 'show') {
                     console.log('showHide.standard.showFirst');
-                    $(show).slideDown(settings.transitionSpeed, function() {
-                        $(hide).slideUp(settings.transitionSpeed);
-                    });
-                } else if (settings.runFirst === 'hide') {
+                    if (!$(show).is(':visible')) {
+                        /* If show element is NOT visible */
+                        $(show).slideDown(settings.transitionSpeed, function () {
+                            if ($(hide).is(':visible')) {
+                                $(hide).slideUp(settings.transitionSpeed);
+                            }
+                        });
+                    } else {
+                        /* If show element IS visible then we don't need to show it */
+                        if ($(hide).is(':visible')) {
+                            $(hide).slideUp(settings.transitionSpeed);
+                        }
+                    }
+                } else if (settings.runWhichEventFirst === 'hide') {
                     console.log('showHide.standard.hideFirst');
-                    $(hide).slideUp(settings.transitionSpeed, function() {
-                        $(show).slideDown(settings.transitionSpeed);
-                    });
+                    if ($(hide).is(':visible')) {
+                        /* If the hide element IS visible */
+                        $(hide).slideUp(settings.transitionSpeed, function () {
+                            if (!$(show).is(':visible')) {
+                                $(show).slideDown(settings.transitionSpeed);
+                            }
+                        });
+                    } else {
+                        /* If the hide element is NOT visible then we don't need to hide it */
+                        if (!$(show).is(':visible')) {
+                            $(show).slideDown(settings.transitionSpeed);
+                        }
+                    }
                 } else {
                     console.log('showHide.standard.showHideSimultaneous');
-                    $(show).slideDown(settings.transitionSpeed);
-                    $(hide).slideUp(settings.transitionSpeed);
+                    if (!$(show).is(':visible')) {
+                        $(show).slideDown(settings.transitionSpeed);
+                    }
+                    if ($(hide).is(':visible')) {
+                        $(hide).slideUp(settings.transitionSpeed);
+                    }
                 }
             }
         }
     };
-
 }(jQuery));
